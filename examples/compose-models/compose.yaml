@@ -1,0 +1,59 @@
+# Docker Compose Native LLM Serving
+#
+# The `models:` top-level key is Docker's native way to serve LLMs.
+# No Ollama, no separate model server — Compose handles everything.
+#
+# Requirements:
+#   - Docker Desktop 4.43.0+ with Model Runner enabled
+#   - GPU drivers installed (Linux/Windows)
+#
+# Usage:
+#   docker compose up
+
+services:
+  # AI agent that uses the model
+  agent:
+    build: .
+    environment:
+      # These are auto-populated by Docker from the `models:` section
+      - MODEL_RUNNER_URL    # e.g., http://model-runner.docker.internal/v1
+      - MODEL_RUNNER_MODEL  # e.g., ai/qwen3:14B-Q6_K
+    depends_on:
+      - database
+
+  # Supporting database
+  database:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: app
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d app"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # MCP Gateway for tool access
+  mcp-gateway:
+    image: docker/mcp-gateway:latest
+    use_api_socket: true
+    command:
+      - --transport=sse
+      - --secrets=/run/secrets/db-url
+      - --servers=postgres
+      - --tools=query
+    secrets:
+      - db-url
+
+# Native model declaration — Docker pulls and serves this automatically
+models:
+  qwen3:
+    model: ai/qwen3:14B-Q6_K
+
+  llama3:
+    model: ai/llama3.1:8B-Q4_K_M
+
+secrets:
+  db-url:
+    file: ./db-url.txt

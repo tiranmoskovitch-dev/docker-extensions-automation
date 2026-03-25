@@ -1,0 +1,12 @@
+services:
+  backend:
+    image: ${DESKTOP_PLUGIN_IMAGE}
+    command: /backend/health-monitor
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - health-data:/data
+    ports:
+      - "9104:9104"
+
+volumes:
+  health-data:

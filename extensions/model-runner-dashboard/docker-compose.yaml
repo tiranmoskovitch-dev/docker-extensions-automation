@@ -1,0 +1,8 @@
+services:
+  backend:
+    image: ${DESKTOP_PLUGIN_IMAGE}
+    command: /backend/model-runner-dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "9103:9103"

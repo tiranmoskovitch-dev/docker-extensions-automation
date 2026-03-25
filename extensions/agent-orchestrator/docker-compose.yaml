@@ -1,0 +1,12 @@
+services:
+  backend:
+    image: ${DESKTOP_PLUGIN_IMAGE}
+    command: /backend/agent-orchestrator
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - agent-data:/data
+    ports:
+      - "9101:9101"
+
+volumes:
+  agent-data:

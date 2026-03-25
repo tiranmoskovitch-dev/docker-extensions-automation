@@ -1,0 +1,64 @@
+# MCP Gateway Pattern Example
+#
+# This demonstrates using docker/mcp-gateway:latest to expose MCP tools
+# to containerized agents WITHOUT giving them direct host access.
+#
+# The gateway acts as a secure broker between agents and MCP servers.
+#
+# Usage:
+#   1. Copy .mcp.env.example to .mcp.env and fill in your tokens
+#   2. docker compose up --build
+
+services:
+  # The MCP Gateway — secure broker for MCP tool access
+  mcp-gateway:
+    image: docker/mcp-gateway:latest
+    use_api_socket: true
+    command:
+      - --transport=sse
+      - --secrets=/run/secrets/mcp-config
+      # Register MCP servers the gateway should proxy
+      - --servers=postgres,filesystem
+      # Restrict which tools are exposed
+      - --tools=query,list_tables,read_file,list_directory
+    secrets:
+      - mcp-config
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8811/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # Example: An AI agent that uses MCP tools via the gateway
+  agent:
+    build:
+      context: .
+      dockerfile: Dockerfile.agent
+    environment:
+      - MCP_SERVER_URL=http://mcp-gateway:8811/sse
+      - AGENT_NAME=research-agent
+    depends_on:
+      mcp-gateway:
+        condition: service_healthy
+
+  # Example: A database that the MCP postgres server connects to
+  database:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: agent
+      POSTGRES_PASSWORD: agent_secret
+      POSTGRES_DB: agent_data
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agent -d agent_data"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+secrets:
+  mcp-config:
+    file: ./mcp-config.json
+
+volumes:
+  pg-data:

@@ -1,0 +1,8 @@
+services:
+  backend:
+    image: ${DESKTOP_PLUGIN_IMAGE}
+    command: /backend/stack-commander
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "9100:9100"

@@ -1,0 +1,17 @@
+node_modules/
+dist/
+build/
+*.exe
+*.dll
+*.so
+*.dylib
+.env
+*.env
+!.mcp.env.example
+.DS_Store
+Thumbs.db
+__pycache__/
+*.pyc
+.vite/
+.cache/
+tmp/

@@ -1,0 +1,13 @@
+{
+  "icon": "docker.svg",
+  "ui": {
+    "dashboard-tab": {
+      "title": "Stack Commander",
+      "root": "/ui",
+      "src": "index.html"
+    }
+  },
+  "vm": {
+    "composefile": "docker-compose.yaml"
+  }
+}
